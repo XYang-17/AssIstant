@@ -1,0 +1,73 @@
+{
+  "URGENCY" : {
+    "MEDIUM": ["这几天", "快点"],
+    "HIGH": ["今天", "尽快"],
+    "CRITICAL": ["立刻", "马上", "加急"]
+  },
+  "INTENT": {
+    "GENERIC": {
+      "QUERY": {
+        "KEYWORDS": ["?", "？", "什么", "如何", "怎么"],
+        "TEMPLATE": ["什么时候能完成？", "当前状态是什么？", "怎么修改认证信息？"]
+      },
+      "TECHNOLOGY": {
+        "KEYWORDS": ["报错", "崩溃", "error", "异常", "exception"],
+        "TEMPLATE": ["应用崩溃", "无法登录", "出现错误"]
+      },
+      "ACCOUNT": {
+        "KEYWORDS": ["账户", "密码", "邮箱", "用户"],
+        "TEMPLATE": ["修改个人信息", "更新邮箱", "注销账号"]
+      },
+      "ESCALATION": {
+        "KEYWORDS": ["投诉", "经理", "负责人", "上级"],
+        "TEMPLATE": ["投诉", "人工客服", "找负责人处理"],
+        "URGENCY": "HIGH"
+      }
+    },
+    "SPECIFIC": {
+      "HUMAN_HANDOFF": {
+        "KEYWORDS": ["人工", "客服"],
+        "TEMPLATE": ["人工客服", "处理升级"],
+        "URGENCY": "HIGH"
+      },
+      "ACCOUNT_SECURITY": {
+        "KEYWORDS": ["验证", "安全", "登录", "盗用", "重置"],
+        "TEMPLATE": ["修改密码", "异常登录", "账号被盗"]
+      },
+      "LOGISTICS": {
+        "KEYWORDS": ["问题", "解决", "办法", "分析", "处理"],
+        "TEMPLATE": ["找出问题", "梳理逻辑", "解决方法"]
+      }
+    },
+    "COMPLAIN": {
+      "KEYWORDS": ["差", "糟糕", "久", "慢"],
+      "TEMPLATE": ["等了很久了！", "体验太差！", "一直没得到处理！"],
+        "URGENCY": "MEDIUM"
+    },
+    "REQUEST": {
+      "KEYWORDS": ["帮", "需要", "完成"],
+      "TEMPLATE": ["帮我取消", "修改信息", "需要帮助"]
+    },
+    "GREETING": {
+      "KEYWORDS": ["你好", "嗨", "hello"],
+      "TEMPLATE": ["你好", "有人在吗", "早上好"]
+    },
+    "FEEDBACK": {
+      "KEYWORDS": ["不错", "满意", "可以"],
+      "TEMPLATE": ["很满意", "非常不错", "好评"]
+    }
+  },
+  "GROUP": {
+    "QUERY": "QUERY",
+    "TECHNOLOGY": "TECHNOLOGY",
+    "ACCOUNT": "ACCOUNT",
+    "ESCALATION": "ESCALATION",
+    "HUMAN_HANDOFF": "ESCALATION",
+    "ACCOUNT_SECURITY": "ACCOUNT",
+    "LOGISTICS": "TECHNOLOGY",
+    "COMPLAIN": "COMPLAIN",
+    "REQUEST": "REQUEST",
+    "GREETING": "GREETING",
+    "FEEDBACK": "FEEDBACK"
+  }
+}
