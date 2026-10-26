@@ -1,8 +1,8 @@
 from anthropic import AsyncAnthropic
 from typing import List
 
-from AssIstant.core.boost.base.tool import *
-from AssIstant.core.boost.base.toolInterface import ToolInterface, AgentRequest, make_tool
+from base.tool import *
+from base.toolInterface import ToolInterface, AgentRequest, make_tool
 from AssIstant.core.agent.utils import extract_text_content
 from AssIstant.common.logger import FormatLog
 from AssIstant.common.utils import clean_text, truncate_text
@@ -30,7 +30,7 @@ class ToolManager(FormatLog):
         self._tools.pop(name, None)
         self.info(f"unregister {name}")
 
-    def statistics(self) -> Dict[str, Any]:
+    def get_states(self) -> Dict[str, Any]:
         return {
             name: {
                 "total": tool.state.total,
@@ -41,6 +41,9 @@ class ToolManager(FormatLog):
             }
             for name, tool in self._tools.items()
         }
+
+    def get_tool(self, name: str) -> Tool:
+        return self._tools.get(name, None)
 
     def description(self, name: str) -> str:
         tool = self._tools.get(name)

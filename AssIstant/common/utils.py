@@ -1,4 +1,4 @@
-from typing import List, Any, Dict, Optional, Sequence, Set
+from typing import List, Any, Dict, Optional, Sequence, Set, Iterable, Callable
 
 def as_list(value: Any, delimiter: str = ",") -> List[str]:
     if value is None or "" == value:
@@ -21,18 +21,53 @@ def extract_value(data: Any, key: Any) -> Any:
         return data.get(key, None)
     return getattr(data, key, None)
 
+def extract(data: Any, key: Any, predicate: Callable = lambda : True, result_type: type = list) -> Any:
+    if isinstance(data, Dict):
+        data = data.get(key, None)
+    else:
+        data = getattr(data, key, None)
+    if not data: return result_type()
+    while hasattr(data, "__getitem__") and isinstance(data[0], result_type):
+        data = data[0]
+    if not isinstance(data, Iterable):
+        data = (data,)
+    return result_type(d for d in data if predicate(d))
 
-def clean_text(text: Any) -> str:
+# def unique(data: Sequence) -> Any:
+#     if not isinstance(data, Sequence): return data
+#     seen = set()
+#     res = list()
+#     for d in data:
+#         if isinstance(d, str):
+#             d = d.strip()
+#         if not d or d in seen:
+#             continue
+#         seen.add(d)
+#         res.append(d)
+#     return type(data)(res)
+
+
+def clean_text(text: Any, encoding: str = "utf-8") -> str:
     """
     文本清洗
     :param text:
+    :param encoding:
     :return:
     """
     if text is None:
         return ""
     if not isinstance(text, str):
         text = str(text)
-    return text.encode("utf-8", errors="ignore").decode("utf-8")
+    return text.encode(encoding, errors="ignore").decode(encoding)
+
+def recursive_clean_text(value: Any, encoding: str = "utf-8") -> Any:
+    if isinstance(value, str):
+        return clean_text(value, encoding)
+    if isinstance(value, Dict):
+        return {clean_text(k, encoding): recursive_clean_text(v, encoding) for k, v in value.items()}
+    if isinstance(value, Sequence):
+        return type(value)(recursive_clean_text(v, encoding) for v in value)
+    return value
 
 
 def truncate_text(text: str, size: int = 10) -> str:
@@ -135,7 +170,13 @@ def cosine(a: List[float], b: List[float]) -> float:
     return dot / (na * nb) if na and nb else 0.0
 
 if __name__ == "__main__":
-    a = [1, 2, 2]
-    b = unique(a)
+    # a = [1, 2, 2]
+    # b = unique(a)
+    # print(b)
+    # print(type(b))
+
+    a = list(({1: "  323 "}, 2, 3))
+    b = recursive_clean_text(a)
     print(b)
-    print(type(b))
+
+    ...

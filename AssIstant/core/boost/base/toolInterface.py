@@ -4,6 +4,7 @@ from json import load
 
 from AssIstant.core.agent.base.agent import AgentRequest
 from AssIstant.common.config import TYPES
+from AssIstant.common.config import ERROR_CODE_PATH
 
 ToolHandler = Callable[[AgentRequest, Dict[str, Any]], Union[Any, Awaitable[Any]]]
 
@@ -75,7 +76,7 @@ def make_tool(
 def inspect_request_context(req: AgentRequest, args: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "intent": req.intent.name() if req.intent else None,
-        "intent_group": req.intent_group,
+        "intent_group": req.intent_group.name() if req.intent_group else None,
         "urgency": req.urgency.name if req.urgency else None,
         "intent_confidence": round(req.intent_confidence, 4),
         "entities": req.entities or {},
@@ -83,7 +84,7 @@ def inspect_request_context(req: AgentRequest, args: Dict[str, Any]) -> Dict[str
         "requested_focus": str(args.get("focus", "general"))[:40],
     }
 
-with open("./error_code.json", 'r', encoding='utf-8') as f:
+with open(ERROR_CODE_PATH, 'r', encoding='utf-8') as f:
     ERROR_CODE_INFO = load(f)
 # ERROR_CODE_INFO = {}
 

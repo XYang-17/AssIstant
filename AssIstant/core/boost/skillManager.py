@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import List, Iterable
 
-from AssIstant.core.boost.base.skill import *
+from base.skill import *
 from AssIstant.core.boost.utils import discover_skills, load_skill
 from AssIstant.common.logger import logger
 from AssIstant.common.utils import truncate_text
@@ -74,7 +74,7 @@ class SkillManager:
 
         if not prompt_blocks:
             logger.debug(
-f"{type(self).__name__}({self._name}) - no skill applicable to content=\"{truncate_text(message or '')}\" and agent_type={agent_type.value or 'all'}")
+f"{type(self).__name__}({self._name}) - no skill applicable to content=\"{truncate_text(message or '')}\" and agent_types={agent_type.value.name or 'all'}")
             return ""
 
         detail = "; ".join(
@@ -82,7 +82,7 @@ f"{type(self).__name__}({self._name}) - no skill applicable to content=\"{trunca
             for skill, keywords in matched_keywords
         )
         logger.info(
-f"{type(self).__name__}({self._name}) - content=\"{truncate_text(message or '')}\" and agent_type={agent_type.value or 'all'}\napplicable skills: {detail}"
+f"{type(self).__name__}({self._name}) - content=\"{truncate_text(message or '')}\" and agent_types={agent_type.value.name or 'all'}\napplicable skills: {detail}"
         )
 
         from AssIstant.common.prompt import PROMPTS

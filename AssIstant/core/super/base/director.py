@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 
 from AssIstant.core.agent.base.agent import AgentType
-from AssIstant.core.agent.base.intentBase import Intent
+from AssIstant.core.agent.base.intentBase import IntentBase
+from AssIstant.core.boost.base.tool import ToolTrace
 
 
 @dataclass
@@ -13,11 +14,11 @@ class RoutingDecision:
     confidence: float = 0.0
 
     @property
-    def agent_type(self) -> List[AgentType]:
+    def agent_types(self) -> List[AgentType]:
         return [self.primary_agent_type] + self.supporting_agents_type
 
     @property
-    def multi_agent(self) -> bool:
+    def multi_agents(self) -> bool:
         return bool(self.supporting_agents_type)
 
 
@@ -26,10 +27,10 @@ class DirectorResponse:
     request_id: str
     agent_type: AgentType
     response: str
-    intent: Optional[Intent]
+    intent: Optional[IntentBase]
     latency: float = 0.0
     escalated: bool = False
     agent_types: List[AgentType] = field(default_factory=list)
     tools_used: List[str] = field(default_factory=list)
-    tools_traces: List[Dict[str, Any]] = field(default_factory=list)
+    tools_trace: List[ToolTrace] = field(default_factory=list)
     routing_decision: RoutingDecision = RoutingDecision(None)

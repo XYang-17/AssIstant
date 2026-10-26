@@ -4,7 +4,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from weakref import WeakValueDictionary, finalize
 from json import load
 
-
+from AssIstant.core.agent.base.agentType import AgentType
 from AssIstant.common.config import INTENT_PATH
 from AssIstant.common.classproperty import classproperty
 
@@ -37,14 +37,15 @@ class IntentMeta(ABCMeta):
                 finalize(cls, _unregister_intent, base, cls.name().upper())
 
 
-class Intent(metaclass=IntentMeta):
+class IntentBase(metaclass=IntentMeta):
     _intent_path: List[str] = ["INTENT"]
+    _registry = WeakValueDictionary()
 
     _urgency: UrgencyLevel = UrgencyLevel.LOW
     _keywords: Optional[List[str]] = None
     _template: Optional[List[str]] = None
     _group: Optional[str] = None
-    _registry = WeakValueDictionary()
+    _agent_type: AgentType = AgentType.GENERAL
 
     @classmethod
     @abstractmethod
@@ -76,6 +77,11 @@ class Intent(metaclass=IntentMeta):
         if cls._group is None:
             cls._load()
         return cls._group
+
+    @classmethod
+    @classproperty
+    def agent_type(cls) -> AgentType:
+        return cls._agent_type
 
     @classmethod
     def names(cls) -> Iterable[Any]:
@@ -117,13 +123,13 @@ class Intent(metaclass=IntentMeta):
             cls._group = group.get(cls._group, "").upper() or cls._group
 
 
-class GenericIntent(Intent, ABC):
+class GenericIntentBase(IntentBase, ABC):
     _intent_path: List[str] = ["INTENT", "GENERIC"]
 
     _registry = WeakValueDictionary()
 
 
-class SpecificIntent(Intent, ABC):
+class SpecificIntentBase(IntentBase, ABC):
     _intent_path: List[str] = ["INTENT", "SPECIFIC"]
 
     _registry = WeakValueDictionary()

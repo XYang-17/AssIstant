@@ -1,0 +1,16 @@
+{
+  "GENERAL": {
+    "static_score": 0.1,
+    "intent_score": 0.55,
+    "keywords_score_factor": 0.12,
+    "max_keywords_score": 0.35,
+    "keywords": ["帮", "help", "怎么", "如何"]
+  },
+  "TECHNICAL": {
+    "static_score": 0.0,
+    "intent_score": 0.75,
+    "keywords_score_factor": 0.18,
+    "max_keywords_score": 0.45,
+    "keywords": ["崩溃", "异常", "逻辑", "error", "方案", "exception", "技术"]
+  }
+}

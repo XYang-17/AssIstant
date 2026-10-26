@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Tuple, Optional, List, Dict
 from uuid import uuid4
 
-from AssIstant.core.agent.base.intentBase import Intent, UrgencyLevel
+from AssIstant.core.agent.base.intentBase import IntentBase, UrgencyLevel
 from AssIstant.core.agent.base.agentType import AgentType
 from AssIstant.core.boost.base.tool import ToolTrace
 from AssIstant.common.base import State
@@ -27,6 +27,7 @@ class AgentProfile:
 class AgentState(State):
     monitor_penalty: float = 0.0
 
+    @property
     def score(self) -> float:
         sc = 1.0 / (1.0 + self.average_latency / 1000)
         sc = self.success_rate * 0.7 + sc * 0.3
@@ -41,8 +42,8 @@ class AgentRequest:
     context: str = ""
     history: Optional[List[Dict[str, str]]] = None
     entities: Dict[str, List[str]] = field(default_factory=dict)
-    intent: Optional[Intent] = None
-    intent_group: Optional[str] = None
+    intent: Optional[IntentBase] = None
+    intent_group: Optional[IntentBase] = None
     intent_confidence: float = 1.0
     urgency: Optional[UrgencyLevel] = None
     request_id: str = field(default_factory=lambda : str(uuid4())[:8])
@@ -57,7 +58,7 @@ class AgentResponse:
     latency: float = 0.0
     escalate: bool = False
     tools: List[str] = field(default_factory=list)
-    traces: List[ToolTrace] = field(default_factory=list)
+    trace: List[ToolTrace] = field(default_factory=list)
 
 
 

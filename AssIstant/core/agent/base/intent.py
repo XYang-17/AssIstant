@@ -8,7 +8,7 @@ from AssIstant.common.cache import LRUCache
 from AssIstant.common.utils import clean_text
 
 
-class OtherIntent(Intent):
+class OtherIntent(IntentBase):
     _keywords: Optional[List[str]] = []
     _template: Optional[List[str]] = []
     _group: Optional[str] = "OTHER"
@@ -18,52 +18,57 @@ class OtherIntent(Intent):
         return "other"
 
 
-class QueryIntent(GenericIntent):
+class QueryIntent(GenericIntentBase):
     @classmethod
     def name(cls) -> str:
         return "query"
 
 
-class TechnologyIntent(GenericIntent):
+class TechnologyIntent(GenericIntentBase):
+    _agent_type = AgentType.TECHNICAL
+
     @classmethod
     def name(cls) -> str:
         return "technology"
 
 
-class AccountIntent(GenericIntent):
+class AccountIntent(GenericIntentBase):
     @classmethod
     def name(cls) -> str:
         return "account"
 
 
-class EscalationIntent(GenericIntent):
+class EscalationIntent(GenericIntentBase):
     _urgency: UrgencyLevel = UrgencyLevel.HIGH
+    _agent_type = AgentType.ESCALATION
 
     @classmethod
     def name(cls) -> str:
         return "escalation"
 
 
-class HumanHandoffIntent(SpecificIntent):
+class HumanHandoffIntent(SpecificIntentBase):
     _urgency: UrgencyLevel = UrgencyLevel.HIGH
+    _agent_type = AgentType.ESCALATION
+
     @classmethod
     def name(cls) -> str:
         return "human_handoff"
 
 
-class AccountSecurityIntent(SpecificIntent):
+class AccountSecurityIntent(SpecificIntentBase):
     @classmethod
     def name(cls) -> str:
         return "account_security"
 
 
-class LogisticsIntent(SpecificIntent):
+class LogisticsIntent(SpecificIntentBase):
     @classmethod
     def name(cls) -> str:
         return "logistics"
 
 
-class ComplainIntent(Intent):
+class ComplainIntent(IntentBase):
     _urgency: UrgencyLevel = UrgencyLevel.MEDIUM
 
     @classmethod
@@ -71,19 +76,19 @@ class ComplainIntent(Intent):
         return "complain"
 
 
-class RequestIntent(Intent):
+class RequestIntent(IntentBase):
     @classmethod
     def name(cls) -> str:
         return "request"
 
 
-class GreetingIntent(Intent):
+class GreetingIntent(IntentBase):
     @classmethod
     def name(cls) -> str:
         return "greeting"
 
 
-class FeedbackIntent(Intent):
+class FeedbackIntent(IntentBase):
     @classmethod
     def name(cls) -> str:
         return "feedback"
@@ -91,10 +96,10 @@ class FeedbackIntent(Intent):
 
 @dataclass
 class IntentResult:
-    intent: Intent
+    intent: IntentBase
     confidence: float
     urgency: UrgencyLevel
-    intent_group: Intent
+    intent_group: IntentBase
     entities: Dict[str, List[str]]
     reasoning: str
     latency: float
@@ -118,7 +123,7 @@ class IntentCache(LRUCache):
         return md5(raw.encode("utf-8")).hexdigest()
 
 
-def urgency(message: str, intent: Intent) -> UrgencyLevel:
+def urgency(message: str, intent: IntentBase) -> UrgencyLevel:
     msg = message.lower()
     for level in UrgencyLevel.__members__.values():
         if any(kw in msg for kw in level.value):
@@ -126,7 +131,7 @@ def urgency(message: str, intent: Intent) -> UrgencyLevel:
     return intent.urgency
 
 
-def pattern_match(message: str, patterns: Dict[Intent, List[str]]) -> tuple[Intent, float]:
+def pattern_match(message: str, patterns: Dict[IntentBase, List[str]]) -> tuple[IntentBase, float]:
     best_cat, score = OtherIntent, 0.0
     for cat, kws in patterns.items():
         hits = sum(1 for kw in kws if kw in message)
@@ -141,21 +146,25 @@ def need_escalation(content: str) -> bool:
 
 
 if __name__ == "__main__":
-    for inte in Intent.names():
-        print(Intent.intent(inte).keywords)
-        print(Intent.intent(inte).template)
-        print(Intent.intent(inte).group)
-        print(Intent.intent(inte).urgency)
+    # for inte in IntentBase.names():
+    #     print(IntentBase.intent(inte).keywords)
+    #     print(IntentBase.intent(inte).template)
+    #     print(IntentBase.intent(inte).group)
+    #     print(IntentBase.intent(inte).urgency)
+    #
+    # print(next(IntentBase._registry.items()))
+    # print(IntentBase.intent('other'))
 
-    print(next(Intent._registry.items()))
-    print(Intent.intent('other'))
 
-
-    # for name in GenericIntent.intents():
+    # for name in GenericIntentBase.intents():
     #     print(name)
     # print('----------')
-    # for name in Intent.intents():
+    # for name in IntentBase.intents():
     #     print(name)
 
     # for u in UrgencyLevel.__members__.keys():
     #     print(type(u))
+
+    print(ComplainIntent.agent_type.value)
+
+    ...

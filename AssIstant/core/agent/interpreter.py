@@ -23,7 +23,7 @@ class IntentInterpreter(FormatLog):
         self._confidence_threshold = confidence_threshold
 
         self._embedding_enable = True
-        self._template_embedding: Dict[Intent, List[List[float]]] = dict()
+        self._template_embedding: Dict[IntentBase, List[List[float]]] = dict()
         self._cache = IntentCache(1000, 200)
         self._cache_hits = 0
         self._cache_miss = 0
@@ -77,7 +77,7 @@ class IntentInterpreter(FormatLog):
         self._cache.set(cache_key, result)
         return result
 
-    def learn(self, message: str, correct: Intent):
+    def learn(self, message: str, correct: IntentBase):
         """
         意图学习
         :param message:
@@ -114,7 +114,7 @@ class IntentInterpreter(FormatLog):
             )
 
         prompt = PROMPTS["interpret"].format(
-            ", ".join(sorted(Intent.names())),
+            ", ".join(sorted(IntentBase.names())),
             context, message
         )
         prompt = clean_text(prompt)
@@ -130,7 +130,7 @@ class IntentInterpreter(FormatLog):
             raw = extract_text_content(resp.content)
             s, e = raw.find('{'), raw.rfind("}")+1
             data = loads(raw[s:e])
-            data["intent"] = Intent.intent(data["intent"])
+            data["intent"] = IntentBase.intent(data["intent"])
             if data["intent"] is None:
                 data["intent"] = OtherIntent
             return data
@@ -167,12 +167,12 @@ class IntentInterpreter(FormatLog):
         """
         msg = message.lower()
         best_cat, score = pattern_match(msg, {intent: intent.keywords
-            for intent in SpecificIntent.intents()
-        })
+                                              for intent in SpecificIntentBase.intents()
+                                              })
         if OtherIntent == best_cat:
             best_cat, score = pattern_match(msg, {intent: intent.keywords
-                for intent in GenericIntent.intents()
-            })
+                                                  for intent in GenericIntentBase.intents()
+                                                  })
         return {"intent": best_cat, "confidence": score}
 
     def _vote(
@@ -180,7 +180,7 @@ class IntentInterpreter(FormatLog):
         llm: Dict[str, Any],
         embedding: Dict[str, Any],
         pattern: Dict[str, Any]
-    ) -> tuple[Intent, float, Dict[str, float]]:
+    ) -> tuple[IntentBase, float, Dict[str, float]]:
         """
         对不同的意图解释打分加权头片，综合判断意图
         :param llm:
@@ -204,7 +204,7 @@ class IntentInterpreter(FormatLog):
             W = [(llm, 0.7), (embedding, 0.2), (pattern, 0.1)]
         else:
             W = [(llm, 0.85), (pattern, 0.15)]
-        scores: Dict[Intent, float] = dict()
+        scores: Dict[IntentBase, float] = dict()
         for source, w in W:
             cat = source.get("intent", OtherIntent)
             conf = source.get("confidence", 0.0)
@@ -214,8 +214,8 @@ class IntentInterpreter(FormatLog):
         best_score = scores[best]
         pattern_intent = pattern.get("intent", OtherIntent)
         pattern_conf = float(pattern.get("confidence", 0.0) or 0.0)
-        if best in GenericIntent.intents() \
-                and pattern_intent in SpecificIntent.intents() \
+        if best in GenericIntentBase.intents() \
+                and pattern_intent in SpecificIntentBase.intents() \
                 and pattern_conf >= 0.5 \
                 and best_score < 0.8:
             source_scores["refined_by_pattern"] = pattern_conf
@@ -247,7 +247,7 @@ class IntentInterpreter(FormatLog):
         加载意图的TEMPLATE，并向量化
         :return:
         """
-        missing = [intent for intent in Intent.intents() if intent not in self._template_embedding]
+        missing = [intent for intent in IntentBase.intents() if intent not in self._template_embedding]
         if not missing: return
 
         vecs = await asyncio.gather(*(self._remote_embedding(tplt) for intent in missing for tplt in intent.template))

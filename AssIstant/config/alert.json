@@ -1,0 +1,49 @@
+{
+  "threshold": {
+    "agent_success_rate": ["lt", 0.9, "error"],
+    "tool_success_rate": ["lt", 0.95, "warning"],
+    "agent_average_latency": ["gt", 3000, "warning"],
+    "tool_average_latency": ["gt", 5000, "error"]
+  },
+  "prometheus": {
+    "request_count": {
+      "metric": "Counter",
+      "params": {
+        "name": "request_count",
+        "documentation": "request count"
+      }
+    },
+    "agent_success_rate": {
+      "metric": "Gauge",
+      "params": {
+        "name": "agent_success_rate",
+        "documentation": "agent success rate",
+        "labelnames": ["agent"]
+      }
+    },
+    "agent_average_latency": {
+      "metric": "Histogram",
+      "params": {
+        "name": "agent_average_latency",
+        "documentation": "agent average latency",
+        "labelnames": ["agent"]
+      }
+    },
+    "tool_success_rate": {
+      "metric": "Gauge",
+      "params": {
+        "name": "tool_success_rate",
+        "documentation": "tool success rate",
+        "labelnames": ["tool"]
+      }
+    },
+    "tool_average_latency": {
+      "metric": "Gauge",
+      "params": {
+        "name": "tool_average_latency",
+        "documentation": "tool average latency",
+        "labelnames": ["tool"]
+      }
+    }
+  }
+}

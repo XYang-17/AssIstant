@@ -1,0 +1,52 @@
+{
+  "TYPES": {
+      "string": "(str,)",
+      "number": "(int, float)",
+      "integer": "(int,)",
+      "boolean": "(bool,)",
+      "array": "(list,)",
+      "object": "(dict,)"
+  },
+
+  "MAX_SKILLS_CHARS": 5000,
+
+  "MAX_CALL_TOOLS_TIMES": 3,
+  
+  "MAX_COMPOSE_TOKENS": 1000,
+  "COMPOSE_TEMPERATURE": 0.1,
+  
+  "MAX_TOOL_TRACES": 200,
+  
+  "AGENT_MODEL": {
+      "GENERAL": "",
+      "TECHNICAL": "",
+      "ESCALATION": ""
+  },
+  
+  "MAX_WORKING_MEMORY": 20,
+  "COMPRESS_THS": 15,
+  "RETAIN_NUM": 5,
+  "HISTORY_TOP_K": 5,
+  "MAX_SUMMARY_CHARS": 800,
+  "PORTRAIT_PREFIX": "user_profile",
+
+  "REDIS_URL": "redis://redis:6379/0",
+  "REDIS_EXPIRE": 86400,
+
+  "CHROMA_HOST": "chromadb",
+  "CHROMA_PORT": 8000,
+  "CHROMA_PERSIST_DIRECTORY": "/app/data/chroma",
+
+  "PROMETHEUS_PORT": 0,
+  "MONITOR_INTERVAL": 10,
+  "ALERT_WEBHOOK_URL": null,
+
+  "ASSISTANT_HOST": "0.0.0.0",
+  "ASSISTANT_PORT": 8000,
+  "ASSISTANT_ENV": "development",
+
+
+  "EVALUATE_PASS_THRESHOLD": 0.75,
+
+  "ASSISTANT_MODEL": "claude-3-5-sonnet-20241022"
+}

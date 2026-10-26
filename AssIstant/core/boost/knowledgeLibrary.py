@@ -2,7 +2,7 @@ import chromadb, asyncio
 from hashlib import md5
 from typing import List
 
-from AssIstant.core.boost.base.document import *
+from base.document import *
 from AssIstant.core.boost.utils import chunkify
 from AssIstant.common.logger import logger
 from AssIstant.common.utils import truncate_text

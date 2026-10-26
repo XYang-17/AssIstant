@@ -2,6 +2,9 @@ import os, time, logging, datetime, traceback
 from logging.handlers import RotatingFileHandler
 from functools import wraps
 from collections.abc import Iterable
+from typing import Callable, Any
+
+from sympy.utilities.iterables import iterable
 
 from AssIstant.common.config import LOG_DIR, FILE_LOG_LEVEL, STREAM_LOG_LEVEL
 
@@ -75,7 +78,33 @@ class FormatLog:
         logger.exception(f"{type(self).__name__}({self._name}) - {message}", *args, **kwargs)
 
 
-def exception_logger(func=None, *, limit=5, catch=(Exception,), exclude=(), reraise=1):
+class BadResult:
+    ...
+
+
+BAD = BadResult()
+
+
+def _normalize_exc(value, default=()):
+    if value is None:
+        return tuple(default) if default else ()
+    if isinstance(value, type) and issubclass(value, BaseException):
+        return (value,)
+    items = value if isinstance(value, Iterable) else (value,)
+    return tuple(
+        exc for exc in items
+        if isinstance(exc, type) and issubclass(exc, BaseException)
+    ) or default
+
+
+def exception_logger(
+        func: Callable=None,
+        *,
+        catch: tuple[Exception]=(Exception,),
+        exclude: tuple[Exception]=(),
+        limit: int=5,
+        reraise:int=1,
+        fallback: Any=BAD):
     """
     打印异常日志
     :param func:
@@ -83,17 +112,13 @@ def exception_logger(func=None, *, limit=5, catch=(Exception,), exclude=(), rera
     :param catch: 捕获这些异常
     :param exclude: 排除这些异常
     :param reraise: 是否再次引发被捕获的异常，>0引发，0不引发，<0执行exit(-1)
+    :param fallback: 异常兜底，当异常被捕获时执行，用于兜底返回
     :return:
     """
-    if catch is None:
-        catch = (Exception,)
-    if not isinstance(catch, Iterable):
-        catch = (catch,)
-    if exclude is None:
-        exclude = ()
-    if not isinstance(exclude, Iterable):
-        exclude = (exclude,)
-    reraise = int(reraise)
+    catch = _normalize_exc(catch, (Exception,))
+    exclude = _normalize_exc(exclude, ())
+    limit = int(limit or 5)
+    reraise = int(reraise or 1)
 
     def decorator(f):
         @wraps(f)
@@ -101,15 +126,27 @@ def exception_logger(func=None, *, limit=5, catch=(Exception,), exclude=(), rera
             try:
                 return f(*args, **kwargs)
             except catch as e:
+                # 打印异常日志
                 if not any(isinstance(e, exc) for exc in exclude):
                     if limit > 0:
-                        logger.error(traceback.format_exc(limit=limit))
+                        logger.exception(traceback.format_exc(limit=limit))
                     elif 0 == limit:
-                        logger.error(f"{type(e).__name__}: {e}")
+                        logger.exception(f"{type(e).__name__}: {e}")
                     else:
-                        logger.error(traceback.format_exc())
+                        logger.exception(traceback.format_exc())
+
+                # 再次引发，或终止程序
                 if reraise > 0: raise
-                elif reraise < 0: exit(-1)
+                elif reraise < 0: SystemExit(-1)
+
+                # 兜底处理
+                if callable(fallback):
+                    try:
+                        return fallback(*args, **kwargs)
+                    except Exception as ex:
+                        logger.exception(f"An exception occurred during the fallback processing\n{type(ex).__name__}: {ex}")
+                        SystemExit(-1)
+                return fallback
         return wrapper
 
     if callable(func):

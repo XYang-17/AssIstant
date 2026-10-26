@@ -4,15 +4,16 @@ from json import dumps
 from inspect import isawaitable
 from typing import Any
 
-from AssIstant.core.agent.base.agent import *
-from AssIstant.core.agent.base.intent import need_escalation
-from AssIstant.core.agent.utils import extract_text_content
+from base.agent import *
+from base.intent import need_escalation
+from utils import extract_text_content
 from AssIstant.core.boost.base.tool import ToolTrace
 from AssIstant.core.boost.base.toolInterface import ToolInterface, ToolInterfaceManager
 from AssIstant.common.logger import FormatLog
 from AssIstant.common.utils import clean_text, extract_value
 from AssIstant.common.config import MAX_CALL_TOOLS_TIMES
 from AssIstant.common.prompt import PROMPTS
+from AssIstant.core.boost.skillManager import SkillManager
 
 
 class AgentBase(ToolInterfaceManager, FormatLog):
@@ -41,6 +42,17 @@ class AgentBase(ToolInterfaceManager, FormatLog):
         self._tools_used: List[str] = []
         self._tools_traces: List[ToolTrace] = []
 
+    def set_skill_manager(self, skill_manager: Optional[SkillManager]):
+        self._skill_manager = skill_manager
+
+    @property
+    def model(self) -> Any:
+        return self._model
+
+    @property
+    def state(self) -> AgentState:
+        return self._state
+
     async def handle(self, req: AgentRequest) -> AgentResponse:
         ms = None
         time_b = monotonic()
@@ -59,19 +71,19 @@ class AgentBase(ToolInterfaceManager, FormatLog):
                 latency=ms,
                 escalate=need_escalation(content),
                 tools=list(self._tools_used),
-                traces=list(self._tools_traces)
+                trace=list(self._tools_traces)
             )
         except Exception as e:
             if ms is None:
                 ms = (monotonic() - time_b) * 1000
             self._state.total += ms
-            self.exception(f"failed to handle {self.agent_type.value} because of exception: {e}")
+            self.exception(f"failed to handle {self.agent_type.value.name} because of exception: {e}")
             return AgentResponse(
                 agent_type=self.agent_type,
                 success=False,
                 content="暂时无法处理请求，请稍后重试",
                 latency=ms,
-                traces=list(self._tools_traces)
+                trace=list(self._tools_traces)
             )
 
     async def _call_llm(self, req: AgentRequest) -> str:
@@ -173,7 +185,7 @@ class AgentBase(ToolInterfaceManager, FormatLog):
         interface = tool_interfaces.get(name)
         time_b = monotonic()
         if interface is None:
-            result = {"succsee": False, "error": f"{self.agent_type.value}未注册名为（{name}）的工具"}
+            result = {"succsee": False, "error": f"{self.agent_type.value.name}未注册名为（{name}）的工具"}
             error_msg = result['error']
         else:
             try:
@@ -212,9 +224,9 @@ class AgentBase(ToolInterfaceManager, FormatLog):
 
     def _build_role_packet(self, req: AgentRequest) -> str:
         packet = {
-            "agent_type": self.agent_type.value,
+            "agent_types": self.agent_type.value.name,
             "intent": req.intent.name() if req.intent else None,
-            "intent_group": req.intent_group,
+            "intent_group": req.intent_group.name() if req.intent_group else None,
             "urgency": req.urgency.name if req.urgency else None,
             "intent_confidence": round(req.intent_confidence, 4),
             "available_entities": req.entities or {}

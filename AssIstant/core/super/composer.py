@@ -3,6 +3,8 @@ from typing import Optional, Any, List
 
 from AssIstant.core.agent.base.agent import AgentRequest, AgentResponse
 from AssIstant.core.agent.utils import extract_text_content
+from AssIstant.core.agent.base.agentType import AgentType
+from AssIstant.core.boost.skillManager import SkillManager
 from AssIstant.common.prompt import PROMPTS
 from AssIstant.common.config import MAX_COMPOSE_TOKENS, COMPOSE_TEMPERATURE
 from AssIstant.common.logger import FormatLog
@@ -13,7 +15,7 @@ class Composer(FormatLog):
         self,
         client: AsyncAnthropic,
         model: str,
-        skill_manager: Optional[Any] = None,
+        skill_manager: Optional[SkillManager] = None,
         name: str = "composer"
     ):
         self._client = client
@@ -33,12 +35,12 @@ class Composer(FormatLog):
             return success[0].content
 
         evidence = "\n\n".join(
-            f"[{resp.agent_type.value} 输出]\n{resp.content}"
+            f"[{resp.agent_type.value.name} 输出]\n{resp.content}"
             for resp in responses
         )
-        prompt = PROMPTS["compose"].format(request.content, evidence, success[0].agent_type.value)
+        prompt = PROMPTS["compose"].format(request.content, evidence, success[0].agent_type.value.name)
         if self._skill_manager is not None:
-            skill = self._skill_manager.prompt4(request.content, "general")
+            skill = self._skill_manager.prompt4(request.content, AgentType.GENERAL)
             if skill:
                 prompt += f"\n\n[输出边界]\n{skill}"
         try:
